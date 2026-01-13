@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Env / Secrets
+.env
+secrets.env.tpl
+
+# Vector DB (Chroma)
+.chroma/
+
+# OS
+.DS_Store
