@@ -155,12 +155,19 @@ make chat
 実行例：
 
 ```text
-> 有給休暇の申請期限は？
+> 出社予定から在宅に切り替える締切は？例外はある？
 
-有給休暇の申請は、原則として2営業日前までに行う必要があります。
+出社予定から在宅に切り替える締切は「9:45まで」に連絡する必要があります。
+
+例外として、雪が強い日の場合は「SAPPORO-ALERT」が出たら9:45を過ぎても在宅切替が可能です。
+
+（資料：docs/01_kintai.md）
 
 --- references ---
 - docs/01_kintai.md (chunk 0)
+- docs/manual_1.md (chunk 0)
+- docs/02_expense.md (chunk 0)
+- docs/04_kb_codename.md (chunk 0)
 ```
 
 ---
