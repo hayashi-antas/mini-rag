@@ -201,7 +201,6 @@ SEV1の定義は、主要機能が停止、売上に直撃、または全社が�
 * FastAPI 化して HTTP API にする
 * Pinecone / pgvector への差し替え
 * AWS（ECS / Lambda）へのデプロイ
-* 文書更新時の差分 ingest
 
 ---
 
