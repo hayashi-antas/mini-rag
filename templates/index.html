@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mini-rag - 社内マニュアル検索</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                🔍 社内マニュアル検索
+            </h1>
+            <p class="text-gray-600">RAGベースの質問応答システム</p>
+        </header>
+
+        <!-- Ingest Section -->
+        <div class="mb-6 bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">📚 文書取り込み</h2>
+                    <p class="text-sm text-gray-600 mt-1">docs/ 配下のファイルをベクトル化します</p>
+                </div>
+                <button
+                    hx-post="/ingest"
+                    hx-target="#ingest-result"
+                    hx-indicator="#ingest-spinner"
+                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                >
+                    取り込み実行
+                </button>
+            </div>
+            <div id="ingest-spinner" class="htmx-indicator mt-4">
+                <div class="flex items-center text-indigo-600">
+                    <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    処理中...
+                </div>
+            </div>
+            <div id="ingest-result" class="mt-4"></div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">💬 チャット</h2>
+            
+            <!-- Chat Log -->
+            <div id="chat-log" class="mb-6 space-y-4 max-h-96 overflow-y-auto">
+                <div class="text-gray-500 text-sm text-center py-8">
+                    質問を入力してください
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <form 
+                hx-post="/chat" 
+                hx-target="#chat-log" 
+                hx-swap="beforeend"
+                hx-indicator="#chat-spinner"
+                class="space-y-4"
+            >
+                <div class="flex gap-3">
+                    <input
+                        type="text"
+                        name="question"
+                        placeholder="例: 勤怠管理システムのログイン方法は？"
+                        required
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <button
+                        type="submit"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    >
+                        送信
+                    </button>
+                </div>
+                <div id="chat-spinner" class="htmx-indicator">
+                    <div class="flex items-center text-indigo-600">
+                        <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        回答を生成中...
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-gray-500 text-sm">
+            <p>mini-rag powered by FastAPI + HTMX + OpenAI</p>
+        </footer>
+    </div>
+
+    <style>
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: flex;
+        }
+    </style>
+</body>
+</html>
