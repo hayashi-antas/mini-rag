@@ -257,7 +257,7 @@ curl -N http://localhost:8000/debug/stream
 * Pinecone / pgvector への差し替え
 * AWS（ECS / Lambda / App Runner）へのデプロイ
 * 会話履歴の永続化（セッション管理）
-* ストリーミング回答（SSE）の実装
+* ~~ストリーミング回答（SSE）の実装~~ ✅ 完了
 
 ---
 
