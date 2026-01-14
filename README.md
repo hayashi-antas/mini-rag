@@ -221,8 +221,18 @@ make web
 ### ローカルで起動
 
 ```bash
+# 1) ビルド（ここはop不要）
 docker build -t mini-rag .
-docker run --rm -p 8000:8000 -e OPENAI_API_KEY=... mini-rag
+
+# 2) 起動（1Password経由でOPENAI_API_KEYを注入 → その値をコンテナへ渡す）
+op run --env-file=secrets.env.tpl -- \
+  docker run --rm -p 8000:8000 \
+  --env-file config.env \
+  -e OPENAI_API_KEY \
+  mini-rag
+
+# 3) 動作確認
+open http://localhost:8000
 ```
 
 ### App Runnerでの設定目安
