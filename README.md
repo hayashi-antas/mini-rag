@@ -32,10 +32,16 @@ mini-rag/
 │   ├── config.py          # 設定の読み込み
 │   ├── chunking.py        # 文書分割ロジック
 │   ├── ingest.py          # 文書 → Embedding → Chroma保存
-│   └── chat.py            # 質問 → 検索 → 回答
-├── config.env              # 設定値（Git管理OK）
-├── secrets.env.tpl         # 秘密情報テンプレ（Git管理しない）
-├── Makefile                # 実行用コマンド定義
+│   ├── chat.py            # 質問 → 検索 → 回答（CLI版）
+│   ├── chat_service.py    # RAGロジック（関数化）
+│   ├── ingest_service.py  # Ingest処理（関数化）
+│   └── api.py             # FastAPI アプリ
+├── templates/             # HTMLテンプレート
+│   ├── index.html         # メイン画面
+│   └── chat_response.html # チャット応答（HTMX用）
+├── config.env             # 設定値（Git管理OK）
+├── secrets.env.tpl        # 秘密情報テンプレ（Git管理しない）
+├── Makefile               # 実行用コマンド定義
 ├── requirements.txt
 ├── README.md
 └── .gitignore
@@ -155,7 +161,7 @@ make ingest
 
 ---
 
-### 3. チャットを起動
+### 3. チャットを起動（CLI版）
 
 ```bash
 make chat
@@ -188,6 +194,55 @@ SEV1の定義は、主要機能が停止、売上に直撃、または全社が�
 
 ---
 
+### 4. Webインターフェースを起動（GUI版）🌟
+
+```bash
+make web
+```
+
+ブラウザで http://localhost:8000 を開くと、以下の機能が使えます：
+
+- 💬 **チャット画面**: 質問を入力すると回答と参照元が表示されます
+- 📚 **文書取り込み**: ボタン1つで `docs/` 配下のファイルを取り込めます
+- 📝 **会話ログ**: 質問と回答が画面に蓄積されていきます
+
+#### Web版の特徴
+- FastAPI + HTMX + TailwindCSS のモダンな構成
+- ブラウザから直感的に操作可能
+- リアルタイムで回答が表示される
+- 参照元（source/chunk）が視覚的にわかりやすい
+
+---
+
+## Docker / App Runner（デプロイ準備）
+
+このリポジトリには `Dockerfile` が含まれています。
+
+### ローカルで起動
+
+```bash
+docker build -t mini-rag .
+docker run --rm -p 8000:8000 -e OPENAI_API_KEY=... mini-rag
+```
+
+### App Runnerでの設定目安
+
+- **Port**: `8000`（または環境変数 `PORT` を設定）
+- **環境変数**: `OPENAI_API_KEY` / `LLM_MODEL` / `EMBED_MODEL` / `TOP_K` など（`config.env` 相当）
+
+※ 現状のベクトルDB（Chroma）はコンテナローカル保存です。App Runner はファイルシステムが永続化されないため、本番運用では RDS(pgvector) / OpenSearch 等の外部ストアへ移行するのがおすすめです。
+
+#### ストリーミング表示の確認（トラブルシュート）
+SSE（Server-Sent Events）でストリーミングします。まずは疎通確認用のエンドポイントで「段階的に表示される」ことを確認してください。
+
+```bash
+curl -N http://localhost:8000/debug/stream
+```
+
+`/debug/stream` が段階的に流れるのに `/chat/stream` が一気に出る場合は、OpenAI 側のストリーミング（`stream=True`）が効いているか、またはリバースプロキシ配下でレスポンスがバッファされていないかを確認してください（例: nginx の `proxy_buffering off` / gzip 無効化）。
+
+---
+
 ## 注意事項
 
 * `.chroma` はローカルのベクトルDBです（Git管理しません）
@@ -198,9 +253,11 @@ SEV1の定義は、主要機能が停止、売上に直撃、または全社が�
 
 ## 今後の拡張アイデア
 
-* FastAPI 化して HTTP API にする
+* ~~FastAPI 化して HTTP API にする~~ ✅ 完了（GUI実装済み）
 * Pinecone / pgvector への差し替え
-* AWS（ECS / Lambda）へのデプロイ
+* AWS（ECS / Lambda / App Runner）へのデプロイ
+* 会話履歴の永続化（セッション管理）
+* ストリーミング回答（SSE）の実装
 
 ---
 
@@ -209,5 +266,3 @@ SEV1の定義は、主要機能が停止、売上に直撃、または全社が�
 * RAG の基本構造を理解する
 * LLM を「業務システムの一部」として扱う練習
 * AWS 実践研修への前段準備
-
-

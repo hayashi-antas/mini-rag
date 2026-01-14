@@ -48,13 +48,13 @@ QUESTION:
 {q}
 """
 
-        # Responses API（推奨）
-        resp = client.responses.create(
+        # Chat Completions API（標準）
+        resp = client.chat.completions.create(
             model=SETTINGS.llm_model,
-            input=prompt,
+            messages=[{"role": "user", "content": prompt}],
         )
 
-        print("\n" + (resp.output_text or "").strip())
+        print("\n" + (resp.choices[0].message.content or "").strip())
 
         print("\n--- references ---")
         for m in metas:

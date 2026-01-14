@@ -1,0 +1,41 @@
+<!-- 質問 -->
+<div class="mb-4">
+    <div class="bg-indigo-100 rounded-lg p-4">
+        <p class="text-sm text-indigo-600 font-medium mb-1">あなたの質問</p>
+        <p class="text-gray-800">{{ question }}</p>
+    </div>
+</div>
+
+<!-- 回答 -->
+<div class="mb-6">
+    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <p class="text-sm text-gray-600 font-medium mb-2">💡 回答</p>
+        <div class="text-gray-800 whitespace-pre-wrap">{{ answer }}</div>
+        
+        <!-- References -->
+        {% if references %}
+        <div class="mt-4 pt-4 border-t border-gray-300">
+            <p class="text-sm text-gray-600 font-medium mb-2">📚 参照元</p>
+            <ul class="space-y-1">
+                {% for ref in references %}
+                <li class="text-sm text-gray-700">
+                    <span class="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
+                    <span class="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{{ ref.source }}</span>
+                    <span class="text-gray-400 text-xs ml-1">(関連度: {{ "%.0f%%"|format((2.0 - ref.distance) / 2.0 * 100) }})</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// 回答が追加されたら自動的にスクロール
+(function() {
+    const chatLog = document.getElementById('chat-log');
+    if (chatLog) {
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+})();
+</script>
