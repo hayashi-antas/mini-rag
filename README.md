@@ -212,6 +212,15 @@ make web
 - リアルタイムで回答が表示される
 - 参照元（source/chunk）が視覚的にわかりやすい
 
+#### ストリーミング表示の確認（トラブルシュート）
+SSE（Server-Sent Events）でストリーミングします。まずは疎通確認用のエンドポイントで「段階的に表示される」ことを確認してください。
+
+```bash
+curl -N http://localhost:8000/debug/stream
+```
+
+`/debug/stream` が段階的に流れるのに `/chat/stream` が一気に出る場合は、OpenAI 側のストリーミング（`stream=True`）が効いているか、またはリバースプロキシ配下でレスポンスがバッファされていないかを確認してください（例: nginx の `proxy_buffering off` / gzip 無効化）。
+
 ---
 
 ## 注意事項
@@ -237,5 +246,4 @@ make web
 * RAG の基本構造を理解する
 * LLM を「業務システムの一部」として扱う練習
 * AWS 実践研修への前段準備
-
 

@@ -21,8 +21,7 @@
                 <li class="text-sm text-gray-700">
                     <span class="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
                     <span class="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{{ ref.source }}</span>
-                    <span class="text-gray-500">chunk {{ ref.chunk }}</span>
-                    <span class="text-gray-400 text-xs">(距離: {{ "%.3f"|format(ref.distance) }})</span>
+                    <span class="text-gray-400 text-xs ml-1">(関連度: {{ "%.0f%%"|format((2.0 - ref.distance) / 2.0 * 100) }})</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -30,3 +29,13 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+// 回答が追加されたら自動的にスクロール
+(function() {
+    const chatLog = document.getElementById('chat-log');
+    if (chatLog) {
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+})();
+</script>

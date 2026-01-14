@@ -55,8 +55,33 @@
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">💬 チャット</h2>
             
+            <!-- Suggested Prompts -->
+            <div class="mb-4 flex flex-wrap gap-2">
+                <button onclick="setPrompt('コアタイムは何時から何時までですか？')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    ⏰ コアタイム
+                </button>
+                <button onclick="setPrompt('遅刻の扱いについて教えてください')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    🚃 遅刻ルール
+                </button>
+                <button onclick="setPrompt('経費精算の方法を教えてください')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    💰 経費精算
+                </button>
+                <button onclick="setPrompt('障害が発生したときの対応手順は？')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    🚨 障害対応
+                </button>
+                <button onclick="setPrompt('タクシーは使えますか？')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    🚕 タクシー利用
+                </button>
+                <button onclick="setPrompt('SHIPコードとは何ですか？')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    📦 コードネーム
+                </button>
+                <button onclick="setPrompt('APIキーを誤って共有した場合はどうすればいいですか？')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-full transition-colors">
+                    🔐 セキュリティ
+                </button>
+            </div>
+            
             <!-- Chat Log -->
-            <div id="chat-log" class="mb-6 space-y-4 max-h-96 overflow-y-auto">
+            <div id="chat-log" class="mb-6 space-y-4 max-h-[600px] overflow-y-auto scroll-smooth">
                 <div class="text-gray-500 text-sm text-center py-8">
                     質問を入力してください
                 </div>
@@ -64,14 +89,13 @@
 
             <!-- Input Form -->
             <form 
-                hx-post="/chat" 
-                hx-target="#chat-log" 
-                hx-swap="beforeend"
-                hx-indicator="#chat-spinner"
+                id="chat-form"
                 class="space-y-4"
+                onsubmit="handleSubmit(event)"
             >
                 <div class="flex gap-3">
                     <input
+                        id="question-input"
                         type="text"
                         name="question"
                         placeholder="例: 勤怠管理システムのログイン方法は？"
@@ -79,22 +103,39 @@
                         class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                     <button
+                        id="submit-btn"
                         type="submit"
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        送信
+                        <span class="submit-text">送信</span>
+                        <span class="submit-loading" style="display: none;">
+                            <svg class="animate-spin h-5 w-5 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
                     </button>
                 </div>
-                <div id="chat-spinner" class="htmx-indicator">
-                    <div class="flex items-center text-indigo-600">
-                        <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <div id="chat-spinner" style="display: none;">
+                    <div class="flex items-center justify-center text-indigo-600 bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                        <svg class="animate-spin h-6 w-6 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        回答を生成中...
+                        <span class="font-medium">回答を生成中...</span>
                     </div>
                 </div>
             </form>
+    <script>
+        // プロンプト候補をクリックしたときに入力欄に設定
+        function setPrompt(text) {
+            const input = document.getElementById('question-input');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+    </script>
         </div>
 
         <!-- Footer -->
@@ -110,6 +151,178 @@
         .htmx-request .htmx-indicator {
             display: flex;
         }
+        /* ボタン内のスピナー制御 */
+        #submit-btn.htmx-request .submit-text,
+        #ingest-btn.htmx-request .ingest-text {
+            display: none !important;
+        }
+        #submit-btn.htmx-request .submit-loading,
+        #ingest-btn.htmx-request .ingest-loading {
+            display: inline !important;
+        }
     </style>
+    <script>
+        // プロンプト候補をクリックしたときに入力欄に設定
+        function setPrompt(text) {
+            const input = document.getElementById('question-input');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+
+        // ストリーミングチャット送信処理
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const input = document.getElementById('question-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const spinner = document.getElementById('chat-spinner');
+            const chatLog = document.getElementById('chat-log');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            // ボタンを無効化
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.submit-text').style.display = 'none';
+            submitBtn.querySelector('.submit-loading').style.display = 'inline';
+            spinner.style.display = 'block';
+            
+            // 質問を表示
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-4';
+            questionDiv.innerHTML = `
+                <div class="bg-indigo-100 rounded-lg p-4">
+                    <p class="text-sm text-indigo-600 font-medium mb-1">あなたの質問</p>
+                    <p class="text-gray-800">${escapeHtml(question)}</p>
+                </div>
+            `;
+            chatLog.appendChild(questionDiv);
+            
+            // 回答エリアを作成
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'mb-6';
+            answerDiv.innerHTML = `
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-sm text-gray-600 font-medium mb-2">💡 回答</p>
+                    <div class="text-gray-800 whitespace-pre-wrap answer-content"></div>
+                    <div class="references-content mt-4 pt-4 border-t border-gray-300" style="display: none;">
+                        <p class="text-sm text-gray-600 font-medium mb-2">📚 参照元</p>
+                        <ul class="space-y-1 references-list"></ul>
+                    </div>
+                </div>
+            `;
+            chatLog.appendChild(answerDiv);
+            
+            const answerContent = answerDiv.querySelector('.answer-content');
+            const referencesContent = answerDiv.querySelector('.references-content');
+            const referencesList = answerDiv.querySelector('.references-list');
+            
+            // スクロール
+            chatLog.scrollTop = chatLog.scrollHeight;
+            
+            // SSEで回答をストリーミング受信
+            const formData = new FormData();
+            formData.append('question', question);
+            
+            fetch('/chat/stream', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                },
+                cache: 'no-store',
+                body: formData
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                function processLine(line) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            
+                            if (data.type === 'token') {
+                                answerContent.textContent += data.content;
+                                chatLog.scrollTop = chatLog.scrollHeight;
+                            } else if (data.type === 'references') {
+                                referencesContent.style.display = 'block';
+                                data.references.forEach(ref => {
+                                    const li = document.createElement('li');
+                                    li.className = 'text-sm text-gray-700';
+                                    const relatedness = Math.round((2.0 - ref.distance) / 2.0 * 100);
+                                    li.innerHTML = `
+                                        <span class="inline-block w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
+                                        <span class="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">${escapeHtml(ref.source)}</span>
+                                        <span class="text-gray-400 text-xs ml-1">(関連度: ${relatedness}%)</span>
+                                    `;
+                                    referencesList.appendChild(li);
+                                });
+                            } else if (data.type === 'done') {
+                                // 完了
+                                submitBtn.disabled = false;
+                                submitBtn.querySelector('.submit-text').style.display = 'inline';
+                                submitBtn.querySelector('.submit-loading').style.display = 'none';
+                                spinner.style.display = 'none';
+                                input.value = '';
+                            } else if (data.type === 'error') {
+                                answerContent.innerHTML = `<p class="text-red-600">エラー: ${escapeHtml(data.message)}</p>`;
+                                submitBtn.disabled = false;
+                                submitBtn.querySelector('.submit-text').style.display = 'inline';
+                                submitBtn.querySelector('.submit-loading').style.display = 'none';
+                                spinner.style.display = 'none';
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse SSE data:', line, e);
+                        }
+                    }
+                }
+                
+                function readStream() {
+                    reader.read().then(({done, value}) => {
+                        if (done) {
+                            // 残りのバッファを処理
+                            if (buffer.trim()) {
+                                processLine(buffer);
+                            }
+                            return;
+                        }
+                        
+                        // デコードしてバッファに追加
+                        buffer += decoder.decode(value, {stream: true});
+                        
+                        // 改行で分割して処理
+                        const lines = buffer.split('\n');
+                        // 最後の行は不完全な可能性があるので残す
+                        buffer = lines.pop() || '';
+                        
+                        for (const line of lines) {
+                            if (line.trim()) {
+                                processLine(line);
+                            }
+                        }
+                        
+                        readStream();
+                    });
+                }
+                
+                readStream();
+            }).catch(error => {
+                answerContent.innerHTML = `<p class="text-red-600">エラー: ${escapeHtml(error.message)}</p>`;
+                submitBtn.disabled = false;
+                submitBtn.querySelector('.submit-text').style.display = 'inline';
+                submitBtn.querySelector('.submit-loading').style.display = 'none';
+                spinner.style.display = 'none';
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import anyio
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from .chat_service import ask_question
+from .chat_service import ask_question, ask_question_stream
 from .ingest_service import run_ingest
 
 app = FastAPI(title="mini-rag")
@@ -55,6 +57,75 @@ async def chat(request: Request, question: str = Form(...)):
         </div>
         """
         return HTMLResponse(content=error_html)
+
+
+@app.post("/chat/stream")
+async def chat_stream(question: str = Form(...)):
+    """
+    チャット処理（ストリーミング版）
+    Server-Sent Eventsでリアルタイムに回答を返す
+    """
+    async def event_generator():
+        try:
+            # 一部のプロキシ/ブラウザが小さなチャンクをバッファしないように、最初にコメントを送ってフラッシュする
+            yield ":" + (" " * 2048) + "\n\n"
+            await anyio.sleep(0)
+
+            for chunk in ask_question_stream(question):
+                if chunk.type == 'token':
+                    # トークンを送信
+                    yield f"data: {json.dumps({'type': 'token', 'content': chunk.content})}\n\n"
+                    await anyio.sleep(0)
+                elif chunk.type == 'references':
+                    # 参照情報を送信
+                    refs = [
+                        {
+                            'source': ref.source,
+                            'chunk': ref.chunk,
+                            'distance': ref.distance,
+                        }
+                        for ref in chunk.references
+                    ]
+                    yield f"data: {json.dumps({'type': 'references', 'references': refs})}\n\n"
+                    await anyio.sleep(0)
+            
+            # 完了を通知
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            # nginx等のリバプロ配下でのバッファ抑止（ローカルでは無害）
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/debug/stream")
+async def debug_stream():
+    """ストリーミングの疎通確認用（OpenAI不要）"""
+    async def event_generator():
+        yield ":" + (" " * 2048) + "\n\n"
+        await anyio.sleep(0)
+        for token in ["ストリーミング", "できて", "います", "…", "\n", "OK"]:
+            yield f"data: {json.dumps({'type': 'token', 'content': token})}\n\n"
+            await anyio.sleep(0.2)
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/ingest", response_class=HTMLResponse)
