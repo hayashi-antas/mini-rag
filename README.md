@@ -212,6 +212,26 @@ make web
 - リアルタイムで回答が表示される
 - 参照元（source/chunk）が視覚的にわかりやすい
 
+---
+
+## Docker / App Runner（デプロイ準備）
+
+このリポジトリには `Dockerfile` が含まれています。
+
+### ローカルで起動
+
+```bash
+docker build -t mini-rag .
+docker run --rm -p 8000:8000 -e OPENAI_API_KEY=... mini-rag
+```
+
+### App Runnerでの設定目安
+
+- **Port**: `8000`（または環境変数 `PORT` を設定）
+- **環境変数**: `OPENAI_API_KEY` / `LLM_MODEL` / `EMBED_MODEL` / `TOP_K` など（`config.env` 相当）
+
+※ 現状のベクトルDB（Chroma）はコンテナローカル保存です。App Runner はファイルシステムが永続化されないため、本番運用では RDS(pgvector) / OpenSearch 等の外部ストアへ移行するのがおすすめです。
+
 #### ストリーミング表示の確認（トラブルシュート）
 SSE（Server-Sent Events）でストリーミングします。まずは疎通確認用のエンドポイントで「段階的に表示される」ことを確認してください。
 
@@ -246,4 +266,3 @@ curl -N http://localhost:8000/debug/stream
 * RAG の基本構造を理解する
 * LLM を「業務システムの一部」として扱う練習
 * AWS 実践研修への前段準備
-
