@@ -8,6 +8,9 @@
 
 という一連の流れを、**AWS に載せ替え可能な構成**で実装しています。
 
+ ## ベクトルDBへ保存の様子
+ [![Image from Gyazo](https://i.gyazo.com/11b15316e60a5ef80b13a891ca0d7751.png)](https://gyazo.com/11b15316e60a5ef80b13a891ca0d7751)
+
 ---
 
 ## 特徴
